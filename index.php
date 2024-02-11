@@ -1,85 +1,157 @@
 <?php
-    session_start();
+require_once('config.php');
+require_once('function.php');
 
-    //print_r($_SESSION);
-    $contacts = [];
-    if(isset($_SESSION['contacts'])){
-        $contacts = $_SESSION['contacts'];
-    }
-    
-    
-    session_write_close();
+require_once('head.php');
+include_once('navbar.php');
+
+// salvo, se presenti, gli album presenti nel DB
+$libri=getAllAlbum();
+
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Libreria App </title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-</head>
-<body>
-    <nav class="navbar bg-dark navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Libreria App</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarText">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="index.php">Home</a>
-                    </li>
-                </ul>
-            <span class="navbar-text">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="login.php">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="register.php">Register</a>
-                    </li>
-                </ul>
-            </span>
+
+<div class='container'>
+    <div class='text-center'>
+        <h1>Libriamo</h1>
+        <p>Inserisci i dati qui:</p>
+    </div>
+
+    
+
+
+    <form method='POST' action="controller.php?action=addAlbum" enctype="multipart/form-data" >
+
+        <div class='row g-3 d-flex flex-column' >    
+            <div class="mb-4 col">
+                <input type="text" class="form-control" placeholder='Titolo...' name='title'>
+            </div>
+            <div class="mb-4 col">
+                <input type="text" class="form-control" placeholder='Autore...' name='artist'>
+            </div>
+            <div class="mb-4 col">
+                <input type="number" class="form-control" placeholder='Anno di uscita...' name='year'>
+            </div>
+            <div class="mb-4 col">
+                <input type="text" class="form-control" placeholder='Genere...' name='genre'>
+            </div>
+            
+        </div>
+        <div class='row g-3'>
+        <div class="mb-3 col-auto">
+                <input type="file" class="form-control" placeholder='Upload the cover' name='cover'>
+            </div>
+            <div class="mb-3 col-auto">
+            <button type="submit" class="btn btn-outline-dark">Submit</button>
             </div>
         </div>
-    </nav>
+    
+    </form>
 
-    <div class="container my-3">
-        <h1 class="text-center">Libreria App</h1>
-        <div class="my-3">
-            <table class="table table-dark table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Image</th>
-                        <th scope="col">Titolo</th>
-                        <th scope="col">Autore</th>
-                        <th scope="col">Anno di Pubblicazione</th>
-                        <th scope="col">Genere</th>
-                        
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    if($contacts){
-                    foreach ($contacts as $key => $contact) { 
-                    ?>
-                        <tr>
-                            <th scope="row"><?= $key+1 ?></th>
-                            <td><img src=<?= $contact['Image'] ?> width="50" ></td>
-                            <td><?= $contact['Titolo'] ?></td>
-                            <td><?= $contact['Autore'] ?></td>
-                            <td><?= $contact['Anno'] ?></td>
-                            <td><?= $contact['Genere'] ?></td>
-                            
-                        </tr>
-                    <?php } }?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-</body>
-</html>
+
+    <table class="table table-dark table-stripped table-hover">
+            <thead>
+                <tr>
+                <th scope="col">#</th>
+                <th scope="col">Copertina</th>
+                <th scope="col">Titolo</th>
+                <th scope="col">Autore</th>
+                <th scope="col">Anno di uscita</th>
+                <th scope="col">Genere</th>
+                <th scope="col">Modifica</th>
+                <th scope="col">Elimina</th>
+                
+                </tr>
+            </thead>
+            <tbody>
+            <?php if(!$libri) { ?>  
+        <h2 class='text-center'>Sembra che la tua libreria sia vuota! <br> Inserisci i dati e clicca su Submit per salvarli</h2>
+    <?php } else { ?>
+        <ul class="list-unstyled">
+            <?php foreach($libri as $libro) {
+                $src = $libro['cover'] ? $libro['cover'] : $defaultCover;
+            ?>
+                
+                
+                <tr>
+                    <th scope="row"><?= $libro['id']+1 ?></th>
+                    <td><img src=<?= $libro['cover'] ?> width="100" ></td>
+                    <td><?= $libro['title'] ?></td>
+                    <td><?= $libro['artist'] ?></td>
+                    <td><?= $libro['year'] ?></td>
+                    <td><?= $libro['genre'] ?></td>
+                    <td><a href="updateAlbum.php?id=<?=$libro['id']?> " class='btn btn-outline-warning'>Modifica</a></td>
+                    <td><a href="controller.php?action=delete&id=<?=$libro['id']?> " class='btn btn-outline-danger'>Elimina</a></td>
+
+                    
+                    
+                </tr>
+                
+                <?php }} ?>
+               
+            </tbody>
+        </table>
+
+
+
+
+
+
+
+
+<!-- 
+    <div>
+    <?php if(!$libri) { ?>  
+        <h2 class='text-center'>Sembra che la tua libreria sia vuota! <br> Inserisci i dati e clicca su Submit per salvarli</h2>
+    <?php } else { ?>
+        <ul class="list-unstyled">
+            <?php foreach($libri as $libro) {
+                $src = $libro['cover'] ? $libro['cover'] : $defaultCover;
+            ?>
+                <li class="mb-3">
+                    <div class="d-flex flex-wrap align-items-center">
+                        <img src="<?=$src?>" alt="libroCover" class='img-fluid mb-2' style="max-width: 200px;">
+                        <div class="text-center d-flex">
+                            <p class='fs-4 fw-bold m-0'><?=$libro['title']?></p>
+                            <p class='fs-5 fw-semibold m-0'><?=$libro['artist']?></p>
+                            <p class='fs-6 m-0'>Anno di uscita <?=$libro['year']?></p>
+                            <p class='fs-6 m-0'>Genre: <?=$libro['genre']?></p>
+                        </div> 
+                        <div class="mt-2">
+                            <a href="updateAlbum.php?id=<?=$libro['id']?>" class='btn btn-outline-warning'><i class="bi bi-pencil-square"></i> Modifica</a>
+                            <a href="controller.php?action=delete&id=<?=$libro['id']?>" class='btn btn-outline-danger'><i class="bi bi-trash3"></i> Elimina</a>
+                        </div>
+                    </div>
+                </li>
+            <?php } ?>
+        </ul>
+    <?php } ?>
+</div>
+
+ -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+require_once('footer.php');
+?>
